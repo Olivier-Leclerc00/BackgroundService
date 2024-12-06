@@ -26,24 +26,35 @@ export class AppComponent {
   baseUrl = "https://localhost:7056/";
 
   // Ajouter une variable nbWins
+  NbWins = 0;
 
   private hubConnection?: signalR.HubConnection
 
   isConnected = false;
   nbClicks = 0;
   // TODO: Ajouter 3 variables: Le multiplier, le multiplierCost, mais également le multiplierIntialCost pour remettre à jour multiplierCost après chaque fin de round (ou sinon on peut passer l'information dans l'appel qui vient du Hub!)
+  multiplierIntialCost = 0;
+  multiplierCost = 0;
+  multiplier = 1;
 
   constructor(public account:AccountService){
   }
 
   Increment() {
     //TODO: Augmenter le nbClicks par la valeur du multiplicateur
-    this.nbClicks += 1;
+    this.nbClicks += this.multiplier;
     this.hubConnection!.invoke('Increment')
   }
 
   BuyMultiplier() {
     // TODO: Implémenter la méthode qui permet d'acheter un niveau de multiplier (Appel au Hub!)
+    if(this.nbClicks >= this.multiplierCost)
+    {
+      this.hubConnection!.invoke('Multiplier')
+      this.nbClicks -= this.multiplierCost;
+      this.multiplier *= 2;
+      this.multiplierCost *= 2;
+    }
   }
 
   async register(){
@@ -85,15 +96,24 @@ export class AppComponent {
     }
 
     this.hubConnection.on('GameInfo', (data:GameInfo) => {
+      console.log(data);
+      
       this.isConnected = true;
       // TODO: Mettre à jour les variables pour le coût du multiplier et le nbWins
+      this.NbWins = data.nbWins;
+      this.multiplierIntialCost = data.multiplierCost;
+      this.multiplierCost = this.multiplierIntialCost;
     });
 
     this.hubConnection.on('EndRound', (data:RoundResult) => {
       this.nbClicks = 0;
       // TODO: Reset du multiplierCost et le multiplier
-
-      // TODO: Si le joueur a gagné, on augmene nbWins
+      this.multiplier = 1;
+      this.multiplierCost = this.multiplierIntialCost;
+      // TODO: Si le joueur a gagné, on augmente nbWins
+      if(data.winners.indexOf(this.account.username) >= 0){
+        this.NbWins++;
+      }
 
       if(data.nbClicks > 0){
         let phrase = " a gagné avec ";
