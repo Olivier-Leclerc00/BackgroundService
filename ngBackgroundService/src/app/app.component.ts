@@ -11,7 +11,7 @@ interface RoundResult{
 }
 
 interface GameInfo{
-  multiplierCost:number,
+  multiplierPrice:number,
   nbWins:number;
 }
 
@@ -101,8 +101,8 @@ export class AppComponent {
       this.isConnected = true;
       // TODO: Mettre à jour les variables pour le coût du multiplier et le nbWins
       this.NbWins = data.nbWins;
-      this.multiplierIntialCost = data.multiplierCost;
-      this.multiplierCost = this.multiplierIntialCost;
+      this.multiplierIntialCost = data.multiplierPrice;
+      this.multiplierCost = this.multiplierIntialCost;     
     });
 
     this.hubConnection.on('EndRound', (data:RoundResult) => {
